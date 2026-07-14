@@ -42,16 +42,21 @@ export function paymentRequiredBody(resource: string) {
   };
 }
 
-/** Returns true if the request may proceed. Sends 402 itself if not. */
-export async function paymentGate(req: FastifyRequest, reply: FastifyReply): Promise<boolean> {
-  const payment = req.headers['x-payment'];
+/**
+ * Framework-agnostic: is a payment payload present?
+ *
+ * TODO(before listing): verify + settle via the OKX facilitator, then set X-PAYMENT-RESPONSE.
+ * Until then this only asserts a payload EXISTS. Never log its value.
+ */
+export function hasPayment(header: string | string[] | undefined): boolean {
+  return typeof header === 'string' && header.length > 0;
+}
 
-  if (!payment || typeof payment !== 'string' || payment.length === 0) {
+/** Fastify adapter (local dev server). Returns true if the request may proceed. */
+export async function paymentGate(req: FastifyRequest, reply: FastifyReply): Promise<boolean> {
+  if (!hasPayment(req.headers['x-payment'])) {
     await reply.code(402).send(paymentRequiredBody(`${req.protocol}://${req.hostname}${req.url}`));
     return false;
   }
-
-  // TODO(before listing): verify + settle via the OKX facilitator, then set X-PAYMENT-RESPONSE.
-  // Until then this only asserts a payment payload is present. Never log its value.
   return true;
 }
