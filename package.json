@@ -1,0 +1,26 @@
+{
+  "name": "preflight",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Simulates a pending transaction and returns a plain-English safety verdict. Pay-per-call MCP server for OKX.AI.",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "inspector": "npx @modelcontextprotocol/inspector"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.12.1",
+    "fastify": "5.3.2",
+    "viem": "2.31.0",
+    "zod": "3.25.42"
+  },
+  "devDependencies": {
+    "tsx": "4.19.4",
+    "typescript": "5.8.3",
+    "vitest": "3.1.4"
+  }
+}

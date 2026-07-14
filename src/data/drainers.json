@@ -1,0 +1,9 @@
+{
+  "_comment": "Known wallet-drainer / phishing addresses. Every entry MUST carry a source URL. Lowercase only. This list is deliberately small and high-confidence — a false DANGER on a legit address is worse than a miss, because it teaches users to ignore us.",
+  "addresses": {
+    "0x0000000000000000000000000000000000000001": {
+      "label": "PLACEHOLDER — replace before listing",
+      "source": "https://example.invalid/replace-me"
+    }
+  }
+}
