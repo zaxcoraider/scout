@@ -49,7 +49,7 @@ const KNOWN_DRAINER: Heuristic = (_sim, ctx) => {
   return {
     id: 'KNOWN_DRAINER',
     severity: 'danger',
-    detail: `An address in this transaction (${truncateAddress(ctx.knownDrainerHit)}) is on a public list of known wallet drainers.`,
+    detail: `An address in this transaction (${truncateAddress(ctx.knownDrainerHit)}) is on a public blacklist of known scam and drainer addresses (ScamSniffer).`,
   };
 };
 

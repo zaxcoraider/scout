@@ -25,7 +25,7 @@ export function scoreVerdict(findings: Finding[]): Verdict {
  * what would have happened to them, Scout worked. Keyed by the worst finding.
  */
 const HEADLINES: Record<string, string> = {
-  KNOWN_DRAINER: 'STOP — this address is a known wallet drainer.',
+  KNOWN_DRAINER: 'STOP — this address is on a public scam blacklist.',
   UNLIMITED_APPROVAL: 'STOP — this hands a stranger the keys to ALL of your tokens.',
   NFT_BLANKET_APPROVAL: 'STOP — this gives away control of every NFT in this collection.',
   APPROVAL_TO_EOA: 'STOP — you are giving a person, not an app, permission to take your tokens.',

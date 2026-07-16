@@ -3,7 +3,7 @@ import { getChain } from '../chains/config.js';
 import type { SimulationResult, StaticContext } from '../types.js';
 import drainers from '../data/drainers.json' with { type: 'json' };
 
-const DRAINER_SET = new Set(Object.keys(drainers.addresses).map((a) => a.toLowerCase()));
+const DRAINER_SET = new Set(drainers.addresses.map((a) => a.toLowerCase()));
 
 /**
  * All the network I/O the heuristics need, done once, at the edge. Heuristics stay pure.
