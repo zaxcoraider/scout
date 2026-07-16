@@ -5,3 +5,8 @@ dist/
 *.log
 coverage/
 .DS_Store
+
+# OKX Onchain OS skills tooling (installed via `npx skills add`, not product code)
+.agents/
+.claude/
+skills-lock.json
