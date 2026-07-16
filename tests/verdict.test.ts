@@ -79,20 +79,93 @@ describe('UNLIMITED_APPROVAL', () => {
   });
 });
 
+describe('NFT_BLANKET_APPROVAL', () => {
+  const allTokens = {
+    token: '0xnft',
+    owner: '0xme',
+    spender: ROUTER,
+    amount: 0n,
+    isUnlimited: false,
+    isAllTokens: true,
+  };
+
+  it('fires on setApprovalForAll', () => {
+    const f = evaluateAll(sim({ approvalDiffs: [allTokens] }), ctx());
+    expect(ids(f)).toContain('NFT_BLANKET_APPROVAL');
+    expect(scoreVerdict(f)).toBe('DANGER');
+  });
+
+  it('does NOT fire on a per-token approval', () => {
+    const single = { ...allTokens, isAllTokens: false, amount: 1_000n };
+    const f = evaluateAll(sim({ approvalDiffs: [single] }), ctx());
+    expect(ids(f)).not.toContain('NFT_BLANKET_APPROVAL');
+  });
+
+  // Edge: a blanket approval that is also flagged unlimited must report as NFT_BLANKET only.
+  // UNLIMITED_APPROVAL guards on `!isAllTokens` precisely so the same grant is not counted
+  // twice under two different findings — this locks that guard in place.
+  it('does not double-count with UNLIMITED_APPROVAL', () => {
+    const both = { ...allTokens, isUnlimited: true };
+    const f = evaluateAll(sim({ approvalDiffs: [both] }), ctx());
+    expect(ids(f)).toContain('NFT_BLANKET_APPROVAL');
+    expect(ids(f)).not.toContain('UNLIMITED_APPROVAL');
+  });
+});
+
 describe('APPROVAL_TO_EOA', () => {
+  const approvalTo = (spender: string) => [
+    { token: '0xtok', owner: '0xme', spender, amount: 500n, isUnlimited: false, isAllTokens: false },
+  ];
+
   it('flags an approval whose spender has no bytecode', () => {
-    const approvalDiffs = [
-      {
-        token: '0xtok',
-        owner: '0xme',
-        spender: DRAINER,
-        amount: 500n,
-        isUnlimited: false,
-        isAllTokens: false,
-      },
-    ];
-    const f = evaluateAll(sim({ approvalDiffs }), ctx({ spenderIsEOA: { [DRAINER]: true } }));
+    const f = evaluateAll(
+      sim({ approvalDiffs: approvalTo(DRAINER) }),
+      ctx({ spenderIsEOA: { [DRAINER]: true } }),
+    );
     expect(ids(f)).toContain('APPROVAL_TO_EOA');
+    expect(scoreVerdict(f)).toBe('DANGER');
+  });
+
+  it('does NOT fire when the spender is a contract', () => {
+    const f = evaluateAll(
+      sim({ approvalDiffs: approvalTo(ROUTER) }),
+      ctx({ spenderIsEOA: { [ROUTER]: false } }),
+    );
+    expect(ids(f)).not.toContain('APPROVAL_TO_EOA');
+  });
+
+  // Edge: the spender in the diff can be mixed-case (checksummed) while the EOA map is keyed
+  // lowercase. The heuristic lowercases before lookup; if it stopped, this would miss.
+  it('matches a checksummed spender against a lowercase EOA map', () => {
+    const CHECKSUMMED = '0xAbC0000000000000000000000000000000DeaD';
+    const f = evaluateAll(
+      sim({ approvalDiffs: approvalTo(CHECKSUMMED) }),
+      ctx({ spenderIsEOA: { [CHECKSUMMED.toLowerCase()]: true } }),
+    );
+    expect(ids(f)).toContain('APPROVAL_TO_EOA');
+  });
+});
+
+describe('TX_REVERTS', () => {
+  it('flags a transaction that fails when simulated', () => {
+    const f = evaluateAll(sim({ success: false }), ctx());
+    expect(ids(f)).toContain('TX_REVERTS');
+    expect(scoreVerdict(f)).toBe('CAUTION');
+  });
+
+  it('does NOT fire on a successful transaction', () => {
+    const f = evaluateAll(sim({ success: true }), ctx());
+    expect(ids(f)).not.toContain('TX_REVERTS');
+  });
+
+  // Edge: a revert that also drains value is two cautions, which escalate to DANGER. Confirms
+  // the finding co-exists with NO_INCOMING_VALUE rather than masking it.
+  it('co-exists with NO_INCOMING_VALUE and escalates to DANGER', () => {
+    const balanceDiffs = [
+      { token: 'USDT', address: '0xme', decimals: 6, before: 100n, after: 0n, diff: -100n },
+    ];
+    const f = evaluateAll(sim({ success: false, balanceDiffs }), ctx({ hasCalldata: true }));
+    expect(ids(f)).toEqual(expect.arrayContaining(['TX_REVERTS', 'NO_INCOMING_VALUE']));
     expect(scoreVerdict(f)).toBe('DANGER');
   });
 });
@@ -133,5 +206,18 @@ describe('KNOWN_DRAINER', () => {
     const f = evaluateAll(sim(), ctx({ knownDrainerHit: DRAINER }));
     expect(ids(f)).toContain('KNOWN_DRAINER');
     expect(scoreVerdict(f)).toBe('DANGER');
+  });
+
+  it('does NOT fire when no address is on the drainer list', () => {
+    const f = evaluateAll(sim(), ctx({ knownDrainerHit: null }));
+    expect(ids(f)).not.toContain('KNOWN_DRAINER');
+    expect(scoreVerdict(f)).toBe('SAFE');
+  });
+
+  // Edge: a drainer hit fires even on an otherwise-benign-looking transaction (no approvals,
+  // no value movement). The list is authoritative — it does not need a second signal to agree.
+  it('fires on an otherwise-empty transaction', () => {
+    const f = evaluateAll(sim({ balanceDiffs: [], approvalDiffs: [] }), ctx({ knownDrainerHit: DRAINER }));
+    expect(ids(f)).toEqual(['KNOWN_DRAINER']);
   });
 });
