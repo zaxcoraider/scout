@@ -1,4 +1,4 @@
-import { parseEventLogs, erc20Abi, maxUint256, type Hex, type Address } from 'viem';
+import { parseEventLogs, erc20Abi, maxUint256, type Hex, type Address, type PublicClient } from 'viem';
 import { getChain } from '../chains/config.js';
 import type { SimulationResult, BalanceDiff, ApprovalDiff } from '../types.js';
 
@@ -58,13 +58,38 @@ export async function simulateTransaction(input: SimulateInput): Promise<Simulat
 
   const logs = result.logs ?? [];
 
+  const balanceDiffs = extractBalanceDiffs(logs, input.from, input.value);
+  await fillDecimals(client, balanceDiffs);
+
   return {
     success: result.status === 'success',
     ...(result.status !== 'success' ? { revertReason: 'Transaction reverted.' } : {}),
     gasUsed: result.gasUsed,
-    balanceDiffs: extractBalanceDiffs(logs, input.from, input.value),
+    balanceDiffs,
     approvalDiffs: extractApprovals(logs, input.from),
   };
+}
+
+/**
+ * Amounts render through formatUnits, so a wrong decimals value shows a USDC drain as
+ * 0.000001 of itself. Same allowlisted RPC client — no new outbound hosts.
+ */
+async function fillDecimals(client: PublicClient, diffs: BalanceDiff[]): Promise<void> {
+  await Promise.all(
+    diffs
+      .filter((d) => d.token !== 'native')
+      .map(async (d) => {
+        try {
+          d.decimals = await client.readContract({
+            address: d.token as Address,
+            abi: erc20Abi,
+            functionName: 'decimals',
+          });
+        } catch {
+          // Nonstandard token without decimals(): keep 18 rather than fail the whole check.
+        }
+      }),
+  );
 }
 
 /**
@@ -106,7 +131,7 @@ function extractBalanceDiffs(
     diffs.push({
       token, // address; the composer truncates it for display
       address: owner,
-      decimals: 18, // TODO(pre-listing): read decimals() so amounts render exactly
+      decimals: 18, // corrected by fillDecimals() after extraction
       before: 0n,
       after: 0n,
       diff,
