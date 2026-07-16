@@ -15,6 +15,9 @@ export interface CheckLogLine {
 }
 
 export function logCheck(line: CheckLogLine): void {
+  // Check lines are info-level; LOG_LEVEL=warn/error runs silent (e.g. the demo recording).
+  const level = process.env['LOG_LEVEL'];
+  if (level === 'warn' || level === 'error') return;
   // Deliberately NOT logging: calldata, from/to, value, payment identifiers.
   console.log(
     JSON.stringify({
