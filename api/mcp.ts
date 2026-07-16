@@ -1,7 +1,12 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createMcpServer } from '../src/mcp.js';
-import { hasPayment, paymentRequiredBody } from '../src/payment/gate.js';
+import {
+  hasPayment,
+  paymentRequiredBody,
+  scoutPaymentRequirements,
+  settlePaymentHeader,
+} from '../src/payment/gate.js';
 
 /**
  * Production MCP endpoint (Vercel).
@@ -23,13 +28,24 @@ export default async function handler(
   }
 
   // Payment gate runs FIRST — before validation, before any simulation compute.
-  if (!hasPayment(req.headers['x-payment'])) {
-    const host = req.headers['host'] ?? 'scout';
+  const resource = `https://${req.headers['host'] ?? 'scout'}${req.url ?? '/api/mcp'}`;
+  const header = req.headers['x-payment'];
+  if (!hasPayment(header)) {
     res.statusCode = 402;
     res.setHeader('content-type', 'application/json');
-    res.end(JSON.stringify(paymentRequiredBody(`https://${host}${req.url ?? '/api/mcp'}`)));
+    res.end(JSON.stringify(paymentRequiredBody(resource)));
     return;
   }
+
+  // Verify + settle (real when OKX creds are set; unverified pass-through otherwise).
+  const outcome = await settlePaymentHeader(header as string, scoutPaymentRequirements(resource));
+  if (!outcome.ok) {
+    res.statusCode = 402;
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ ...paymentRequiredBody(resource), error: outcome.reason }));
+    return;
+  }
+  if (outcome.paymentResponse) res.setHeader('X-PAYMENT-RESPONSE', outcome.paymentResponse);
 
   // Stateless: a fresh server + transport per invocation. Exactly what serverless wants.
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
