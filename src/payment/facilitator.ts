@@ -139,3 +139,32 @@ export function settlePayment(
     paymentRequirements: requirements,
   });
 }
+
+/**
+ * GET /supported — the payment kinds (scheme/network/asset) the facilitator accepts.
+ * Diagnostic only: run via scripts/probe-facilitator.ts to learn the exact format OKX
+ * marketplace clients sign against, then reconcile scoutPaymentRequirements() to match.
+ */
+export async function getSupported(): Promise<unknown> {
+  const key = env.SCOUT_OKX_API_KEY!;
+  const secret = env.SCOUT_OKX_API_SECRET!;
+  const passphrase = env.SCOUT_OKX_API_PASSPHRASE!;
+
+  const requestPath = `${PATH_PREFIX}/supported`;
+  const timestamp = new Date().toISOString();
+  // GET has an empty body in the prehash.
+  const sign = signOkxRequest(secret, timestamp, 'GET', requestPath, '');
+
+  const res = await fetch(`${env.SCOUT_X402_FACILITATOR_URL}${requestPath}`, {
+    method: 'GET',
+    headers: {
+      'OK-ACCESS-KEY': key,
+      'OK-ACCESS-SIGN': sign,
+      'OK-ACCESS-PASSPHRASE': passphrase,
+      'OK-ACCESS-TIMESTAMP': timestamp,
+    },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) throw new Error(`Facilitator /supported HTTP ${res.status}`);
+  return res.json();
+}
