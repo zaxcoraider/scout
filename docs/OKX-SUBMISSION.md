@@ -10,10 +10,12 @@
 - [ ] Deploy Scout to Vercel → get public URL (e.g. `https://scout-xxxx.vercel.app`)
 - [ ] Set `SCOUT_PAYTO_ADDRESS` to REAL receiving wallet (not `0x0000…`)
 - [ ] Verify live `/mcp` returns 402 gate + DANGER verdict on the drainer fixture
-- [ ] Register A2MCP ASP via Onchain OS agent (steps 2–5 of the tutorial) — **starts the 24h review clock**
-- [ ] Record ≤90s demo video
-- [ ] Post on X with `#OKXAI` + demo + use case → copy the post link
+- [ ] Register A2MCP ASP via Onchain OS agent (steps 2–5 of the tutorial) — **starts review; OKX reviews in parallel during the submission window**
+- [ ] Post on X with `#OKXAI` — intro + use case + ≤90s demo/walkthrough **embedded in the post** (no separate video upload) → copy the post link
 - [ ] Submit Google form (ASP details + X post link) before Jul 17 23:59 UTC
+
+Submission window: Jul 3 – **Jul 17 23:59 UTC**. Get listed early — OKX reviews and
+approves in parallel during the window, so being in the queue sooner = safer.
 
 ---
 
