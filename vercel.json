@@ -1,11 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": "public",
   "functions": {
     "api/mcp.ts": { "maxDuration": 30 },
-    "api/healthz.ts": { "maxDuration": 10 }
+    "api/healthz.ts": { "maxDuration": 10 },
+    "api/demo.ts": { "maxDuration": 15 }
   },
   "rewrites": [
     { "source": "/mcp", "destination": "/api/mcp" },
-    { "source": "/healthz", "destination": "/api/healthz" }
+    { "source": "/healthz", "destination": "/api/healthz" },
+    { "source": "/demo", "destination": "/api/demo" }
   ]
 }
