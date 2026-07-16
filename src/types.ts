@@ -63,7 +63,7 @@ export interface Finding {
  */
 export type AnalysisMode = 'simulated' | 'decoded';
 
-export interface PreflightResponse {
+export interface ScoutResponse {
   verdict: Verdict;
   headline: string;
   effects: string[];

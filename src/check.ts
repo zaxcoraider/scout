@@ -6,7 +6,7 @@ import { evaluateAll } from './heuristics/index.js';
 import { compose } from './verdict/compose.js';
 import { logCheck } from './log.js';
 import { getChain } from './chains/config.js';
-import type { PreflightResponse, SimulationResult } from './types.js';
+import type { ScoutResponse, SimulationResult } from './types.js';
 
 export interface CheckInput {
   chainId: number;
@@ -32,7 +32,7 @@ const EMPTY_SIM: SimulationResult = {
  * If simulation is unavailable or fails, we degrade to decode-only and SAY SO in the
  * response — never silently return a weaker answer dressed as a full one.
  */
-export async function checkTransaction(input: CheckInput): Promise<PreflightResponse> {
+export async function checkTransaction(input: CheckInput): Promise<ScoutResponse> {
   const startedAt = Date.now();
   const chain = getChain(input.chainId);
 

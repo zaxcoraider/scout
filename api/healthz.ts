@@ -12,7 +12,7 @@ export default function handler(_req: IncomingMessage, res: ServerResponse) {
       version: '0.1.0',
       // Security contract (e): chain ids only. Never the RPC URLs.
       chains: SUPPORTED_CHAIN_IDS,
-      priceUsdt: env.PREFLIGHT_PRICE_USDT,
+      priceUsdt: env.SCOUT_PRICE_USDT,
       disclaimer: DISCLAIMER,
     }),
   );

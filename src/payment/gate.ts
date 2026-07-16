@@ -28,12 +28,12 @@ export function paymentRequiredBody(resource: string) {
       {
         scheme: 'exact',
         network: 'xlayer',
-        maxAmountRequired: toBaseUnits(env.PREFLIGHT_PRICE_USDT, USDT_DECIMALS),
+        maxAmountRequired: toBaseUnits(env.SCOUT_PRICE_USDT, USDT_DECIMALS),
         resource,
         description:
           'Simulate a pending transaction and return a plain-English safety verdict (SAFE / CAUTION / DANGER).',
         mimeType: 'application/json',
-        payTo: env.PREFLIGHT_PAYTO_ADDRESS,
+        payTo: env.SCOUT_PAYTO_ADDRESS,
         maxTimeoutSeconds: 60,
         asset: USDT_XLAYER,
         extra: { name: 'USDT', decimals: USDT_DECIMALS },

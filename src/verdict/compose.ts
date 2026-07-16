@@ -3,7 +3,7 @@ import type {
   Finding,
   SimulationResult,
   Verdict,
-  PreflightResponse,
+  ScoutResponse,
   StaticContext,
   AnalysisMode,
 } from '../types.js';
@@ -76,7 +76,7 @@ export function compose(
   ctx: StaticContext,
   findings: Finding[],
   mode: AnalysisMode,
-): PreflightResponse {
+): ScoutResponse {
   const verdict = scoreVerdict(findings);
   const chain = getChain(ctx.chainId);
 

@@ -10,7 +10,7 @@
  * Run: node_modules\.bin\tsx --env-file=.env scripts\smoke.ts
  */
 import { checkTransaction } from '../src/check.js';
-import type { PreflightResponse } from '../src/types.js';
+import type { ScoutResponse } from '../src/types.js';
 
 const USDC_ETH = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const USDT_XLAYER = '0x1E4a5963aBFD975d8c9021ce480b42188849D41d';
@@ -20,7 +20,7 @@ const EOA_SPENDER = '0x1111111111111111111111111111111111111111';
 const unlimitedApprove = (spender: string) =>
   ('0x095ea7b3' + spender.slice(2).toLowerCase().padStart(64, '0') + 'f'.repeat(64)) as `0x${string}`;
 
-function report(label: string, r: PreflightResponse, expect: string) {
+function report(label: string, r: ScoutResponse, expect: string) {
   const pass = r.verdict === expect;
   console.log(`\n${pass ? '✅' : '❌'} ${label}`);
   console.log(`   verdict:  ${r.verdict}  (expected ${expect})`);

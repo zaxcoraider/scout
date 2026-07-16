@@ -8,7 +8,7 @@ export const xLayer = defineChain({
   id: 196,
   name: 'X Layer',
   nativeCurrency: { name: 'OKB', symbol: 'OKB', decimals: 18 },
-  rpcUrls: { default: { http: [env.PREFLIGHT_RPC_196] } },
+  rpcUrls: { default: { http: [env.SCOUT_RPC_196] } },
 });
 
 export interface ChainEntry {
@@ -36,14 +36,14 @@ export const CHAINS: Record<number, ChainEntry> = {
     id: 196,
     name: 'X Layer',
     nativeSymbol: 'OKB',
-    client: createPublicClient({ chain: xLayer, transport: http(env.PREFLIGHT_RPC_196) }),
+    client: createPublicClient({ chain: xLayer, transport: http(env.SCOUT_RPC_196) }),
     canSimulate: false,
   },
   1: {
     id: 1,
     name: 'Ethereum',
     nativeSymbol: 'ETH',
-    client: createPublicClient({ chain: mainnet, transport: http(env.PREFLIGHT_RPC_1) }),
+    client: createPublicClient({ chain: mainnet, transport: http(env.SCOUT_RPC_1) }),
     canSimulate: true,
   },
 };

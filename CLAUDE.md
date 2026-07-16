@@ -1,4 +1,4 @@
-# PreFlight — Project Constitution
+# Scout — Project Constitution
 
 Pay-per-call MCP server that simulates a **pending transaction** and returns a plain-English
 safety verdict. The one thing no other OKX.AI security agent does: take the exact calldata a
@@ -11,7 +11,7 @@ SentryX, Onchain Shield, CA X-Ray, AddressX, IronClaw, GlassDesk). **None simula
 calldata.** That gap is the entire product.
 
 - Do NOT build token-scan or address-scan tools. CertiK owns token scan at 0.001 USDT.
-- ONE tool: `preflight_check_transaction`. Scope creep here is how we lose.
+- ONE tool: `scout_check_transaction`. Scope creep here is how we lose.
 - Category: Software Services. Contends for Best Product + Revenue Rocket.
 
 ## Stack
