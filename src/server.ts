@@ -4,6 +4,7 @@ import { env } from './env.js';
 import { createMcpServer } from './mcp.js';
 import { SUPPORTED_CHAIN_IDS } from './chains/config.js';
 import { paymentGate } from './payment/gate.js';
+import { facilitatorConfigured } from './payment/facilitator.js';
 import { DISCLAIMER } from './types.js';
 
 /** Local dev server. Production runs on Vercel via api/ — see api/mcp.ts. */
@@ -15,6 +16,7 @@ app.get('/healthz', async () => ({
   // Security contract (e): chain ids only. Never the RPC URLs.
   chains: SUPPORTED_CHAIN_IDS,
   priceUsdt: env.SCOUT_PRICE_USDT,
+  payments: facilitatorConfigured() ? 'active' : 'unverified',
   disclaimer: DISCLAIMER,
 }));
 

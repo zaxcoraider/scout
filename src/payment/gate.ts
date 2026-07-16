@@ -108,21 +108,28 @@ export async function settlePaymentHeader(
     return { ok: false, verified: true, reason: 'Malformed X-PAYMENT payload.' };
   }
 
-  const verified = await verifyPayment(payload, requirements);
-  if (!verified.isValid) {
-    return { ok: false, verified: true, reason: 'Payment failed verification.' };
-  }
+  // A facilitator error must never crash the function (500). Reject cleanly instead —
+  // fail-closed protects revenue: we do not serve a result we could not settle.
+  try {
+    const verified = await verifyPayment(payload, requirements);
+    if (!verified.isValid) {
+      return { ok: false, verified: true, reason: 'Payment failed verification.' };
+    }
 
-  const settled = await settlePayment(payload, requirements);
-  if (!settled.success) {
-    return { ok: false, verified: true, reason: 'Payment settlement was rejected.' };
-  }
+    const settled = await settlePayment(payload, requirements);
+    if (!settled.success) {
+      return { ok: false, verified: true, reason: 'Payment settlement was rejected.' };
+    }
 
-  // X-PAYMENT-RESPONSE: proof of settlement echoed to the caller. No identifiers logged.
-  const paymentResponse = Buffer.from(
-    JSON.stringify({ success: true, network: settled.network ?? null }),
-  ).toString('base64');
-  return { ok: true, verified: true, paymentResponse };
+    // X-PAYMENT-RESPONSE: proof of settlement echoed to the caller. No identifiers logged.
+    const paymentResponse = Buffer.from(
+      JSON.stringify({ success: true, network: settled.network ?? null }),
+    ).toString('base64');
+    return { ok: true, verified: true, paymentResponse };
+  } catch {
+    // Deliberately not echoing the error — contract (g). Facilitator faults read as rejection.
+    return { ok: false, verified: true, reason: 'Payment processing is temporarily unavailable.' };
+  }
 }
 
 /** Fastify adapter (local dev server). Returns true if the request may proceed. */
