@@ -41,7 +41,7 @@ export interface StaticContext {
   knownDrainerHit: string | null;
   /**
    * Was there calldata? A bare value transfer is a payment the user explicitly asked for —
-   * nothing is hidden, so it must not be flagged. PreFlight's job is revealing what you did
+   * nothing is hidden, so it must not be flagged. Scout's job is revealing what you did
    * NOT ask for.
    */
   hasCalldata: boolean;
@@ -84,4 +84,4 @@ export interface PreflightResponse {
 }
 
 export const DISCLAIMER =
-  'Safety signal, not a guarantee. PreFlight simulates the transaction you gave it and reports what it observed. Not financial advice.';
+  'Safety signal, not a guarantee. Scout simulates the transaction you gave it and reports what it observed. Not financial advice.';

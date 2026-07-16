@@ -41,5 +41,5 @@ app.listen({ port: env.PORT, host: '0.0.0.0' }, (err, address) => {
     console.error('Failed to start:', err.message);
     process.exit(1);
   }
-  console.log(`PreFlight listening on ${address}`);
+  console.log(`Scout listening on ${address}`);
 });

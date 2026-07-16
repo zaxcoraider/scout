@@ -25,7 +25,7 @@ const unpaid = await call({}, { jsonrpc: '2.0', id: 1, method: 'tools/list' });
 console.log(`HTTP ${unpaid.status}`);
 console.log(unpaid.text.slice(0, 500));
 
-console.log('\n=== 2. Paid call: tools/call preflight_check_transaction (drainer approval) ===');
+console.log('\n=== 2. Paid call: tools/call scout_check_transaction (drainer approval) ===');
 const paid = await call(
   { 'x-payment': 'demo-payment-payload' },
   {
@@ -33,7 +33,7 @@ const paid = await call(
     id: 2,
     method: 'tools/call',
     params: {
-      name: 'preflight_check_transaction',
+      name: 'scout_check_transaction',
       arguments: { chainId: 1, from: WHALE, to: USDC, data: APPROVE },
     },
   },

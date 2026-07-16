@@ -12,7 +12,7 @@ export const CheckTransactionInput = z
       .number()
       .int()
       .refine((id) => SUPPORTED_CHAIN_IDS.includes(id), {
-        message: `Unsupported chain. PreFlight supports: ${supportedList}.`,
+        message: `Unsupported chain. Scout supports: ${supportedList}.`,
       })
       .describe('196 for X Layer, 1 for Ethereum.'),
     from: z
@@ -39,10 +39,10 @@ export const CheckTransactionInput = z
 
 /** Fresh server per request — stateless, so it scales horizontally / on serverless. */
 export function createMcpServer(): McpServer {
-  const server = new McpServer({ name: 'preflight', version: '0.1.0' });
+  const server = new McpServer({ name: 'scout', version: '0.1.0' });
 
   server.registerTool(
-    'preflight_check_transaction',
+    'scout_check_transaction',
     {
       description:
         'Simulates a pending transaction and reports what it ACTUALLY does — balance changes, token approvals granted, and whether it reverts — with a plain-English safety verdict (SAFE / CAUTION / DANGER). Call this before signing or broadcasting anything. Returns safety signals, not a guarantee.',

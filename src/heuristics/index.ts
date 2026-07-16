@@ -69,7 +69,7 @@ const TX_REVERTS: Heuristic = (sim) => {
  * Guarded on `hasCalldata` deliberately: a bare value transfer with no calldata is a payment
  * the user typed out themselves. Flagging that would mark every ordinary send as suspicious,
  * and a safety tool that cries wolf on normal behaviour is one users learn to ignore.
- * PreFlight only reports what you did NOT ask for.
+ * Scout only reports what you did NOT ask for.
  */
 const NO_INCOMING_VALUE: Heuristic = (sim, ctx) => {
   if (!ctx.hasCalldata) return null;

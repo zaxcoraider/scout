@@ -22,7 +22,7 @@ export function scoreVerdict(findings: Finding[]): Verdict {
 
 /**
  * The headline is the product. If a non-technical person reads one sentence and understands
- * what would have happened to them, PreFlight worked. Keyed by the worst finding.
+ * what would have happened to them, Scout worked. Keyed by the worst finding.
  */
 const HEADLINES: Record<string, string> = {
   KNOWN_DRAINER: 'STOP — this address is a known wallet drainer.',

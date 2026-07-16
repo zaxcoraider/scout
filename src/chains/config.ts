@@ -23,7 +23,7 @@ export interface ChainEntry {
    * X Layer = NO — rpc.xlayer.tech AND xlayerrpc.okx.com both return HTTP 403 for the method.
    * Anvil forking would hit the same wall (CDK zkEVM), so this is not a fixable RPC choice.
    *
-   * When false, PreFlight runs decode-only: static calldata analysis + getCode. That still
+   * When false, Scout runs decode-only: static calldata analysis + getCode. That still
    * catches every approval-based drainer, which is the DANGER path that matters.
    */
   canSimulate: boolean;
@@ -55,7 +55,7 @@ export function getChain(chainId: number): ChainEntry {
   if (!entry) {
     // Security contract (g): actionable, but never echoes raw input back.
     const supported = SUPPORTED_CHAIN_IDS.map((id) => `${id} (${CHAINS[id]!.name})`).join(', ');
-    throw new Error(`Unsupported chainId. PreFlight supports: ${supported}.`);
+    throw new Error(`Unsupported chainId. Scout supports: ${supported}.`);
   }
   return entry;
 }

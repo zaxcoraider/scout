@@ -70,7 +70,7 @@ export async function checkTransaction(input: CheckInput): Promise<PreflightResp
 
   logCheck({
     chainId: input.chainId,
-    tool: 'preflight_check_transaction',
+    tool: 'scout_check_transaction',
     verdict: response.verdict,
     latencyMs: Date.now() - startedAt,
     findingIds: findings.map((f) => f.id),

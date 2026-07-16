@@ -24,7 +24,7 @@ export default async function handler(
 
   // Payment gate runs FIRST — before validation, before any simulation compute.
   if (!hasPayment(req.headers['x-payment'])) {
-    const host = req.headers['host'] ?? 'preflight';
+    const host = req.headers['host'] ?? 'scout';
     res.statusCode = 402;
     res.setHeader('content-type', 'application/json');
     res.end(JSON.stringify(paymentRequiredBody(`https://${host}${req.url ?? '/api/mcp'}`)));
