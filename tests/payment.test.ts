@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createHmac } from 'node:crypto';
-import { signOkxRequest, facilitatorConfigured } from '../src/payment/facilitator.js';
+import { signOkxRequest, facilitatorConfigured, okxCodeOk } from '../src/payment/facilitator.js';
 import {
   getPaymentHeader,
   decodePaymentHeader,
@@ -35,6 +35,22 @@ describe('signOkxRequest', () => {
     const base = signOkxRequest(secret, ts, 'POST', path, body);
     expect(signOkxRequest('other', ts, 'POST', path, body)).not.toBe(base);
     expect(signOkxRequest(secret, ts, 'POST', path, '{}')).not.toBe(base);
+  });
+});
+
+describe('okxCodeOk', () => {
+  // The facilitator returns code 0 as a NUMBER; other OKX APIs use the string "0".
+  // A strict string check made successful verifies read as failures (found live 2026-07-17).
+  it('accepts both numeric and string zero', () => {
+    expect(okxCodeOk(0)).toBe(true);
+    expect(okxCodeOk('0')).toBe(true);
+  });
+
+  it('rejects error codes and absent values', () => {
+    expect(okxCodeOk(50011)).toBe(false);
+    expect(okxCodeOk('50011')).toBe(false);
+    expect(okxCodeOk(undefined)).toBe(false);
+    expect(okxCodeOk(null)).toBe(false);
   });
 });
 

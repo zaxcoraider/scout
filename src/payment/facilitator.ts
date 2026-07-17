@@ -81,11 +81,20 @@ interface FacilitatorBody {
   paymentRequirements: PaymentRequirements;
 }
 
-/** OKX envelope: { code: "0", msg, data }. code !== "0" is an application-level error. */
+/**
+ * OKX envelope: { code, msg, data }. Success is code 0 — but the facilitator returns it as a
+ * NUMBER (0) while other OKX APIs use the string "0" (observed live 2026-07-17: a strict
+ * string comparison made successful verifies read as failures). Accept both.
+ */
 interface OkxEnvelope<T> {
-  code: string;
+  code: string | number;
   msg: string;
   data: T;
+}
+
+/** True when an OKX envelope code means success, regardless of string/number representation. */
+export function okxCodeOk(code: unknown): boolean {
+  return String(code) === '0';
 }
 
 async function callFacilitator<T>(endpoint: '/verify' | '/settle', body: FacilitatorBody): Promise<T> {
@@ -115,7 +124,7 @@ async function callFacilitator<T>(endpoint: '/verify' | '/settle', body: Facilit
   // Contract (g): error messages never echo raw user input — only endpoint + status/code.
   if (!res.ok) throw new Error(`Facilitator ${endpoint} HTTP ${res.status}`);
   const json = (await res.json()) as OkxEnvelope<T>;
-  if (json.code !== '0') throw new Error(`Facilitator ${endpoint} rejected (code ${json.code})`);
+  if (!okxCodeOk(json.code)) throw new Error(`Facilitator ${endpoint} rejected (code ${json.code})`);
   return json.data;
 }
 
