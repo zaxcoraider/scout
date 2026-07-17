@@ -2,7 +2,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createMcpServer } from '../src/mcp.js';
 import {
-  hasPayment,
+  encodePaymentRequired,
+  getPaymentHeader,
   paymentRequiredBody,
   scoutPaymentRequirements,
   settlePaymentHeader,
@@ -29,23 +30,27 @@ export default async function handler(
 
   // Payment gate runs FIRST — before validation, before any simulation compute.
   const resource = `https://${req.headers['host'] ?? 'scout'}${req.url ?? '/api/mcp'}`;
-  const header = req.headers['x-payment'];
-  if (!hasPayment(header)) {
+  const header = getPaymentHeader(req.headers);
+  if (!header) {
+    const challenge = paymentRequiredBody(resource, 'Payment required.');
     res.statusCode = 402;
     res.setHeader('content-type', 'application/json');
-    res.end(JSON.stringify(paymentRequiredBody(resource)));
+    res.setHeader('PAYMENT-REQUIRED', encodePaymentRequired(challenge));
+    res.end(JSON.stringify(challenge));
     return;
   }
 
   // Verify + settle (real when OKX creds are set; unverified pass-through otherwise).
-  const outcome = await settlePaymentHeader(header as string, scoutPaymentRequirements(resource));
+  const outcome = await settlePaymentHeader(header, scoutPaymentRequirements());
   if (!outcome.ok) {
+    const challenge = paymentRequiredBody(resource, outcome.reason);
     res.statusCode = 402;
     res.setHeader('content-type', 'application/json');
-    res.end(JSON.stringify({ ...paymentRequiredBody(resource), error: outcome.reason }));
+    res.setHeader('PAYMENT-REQUIRED', encodePaymentRequired(challenge));
+    res.end(JSON.stringify(challenge));
     return;
   }
-  if (outcome.paymentResponse) res.setHeader('X-PAYMENT-RESPONSE', outcome.paymentResponse);
+  if (outcome.paymentResponse) res.setHeader('PAYMENT-RESPONSE', outcome.paymentResponse);
 
   // Stateless: a fresh server + transport per invocation. Exactly what serverless wants.
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });

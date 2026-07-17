@@ -20,18 +20,19 @@ const PATH_PREFIX = '/api/v6/pay/x402';
 // OKX documents x402Version 2 for the facilitator body.
 const X402_VERSION = 2;
 
-/** Seller-side payment requirements — the shape advertised in the 402 body and sent to verify. */
+/**
+ * Seller-side payment requirements — one entry of the challenge's `accepts` array, and the
+ * `paymentRequirements` sent to verify/settle. Field set matches @okxweb3/x402-core's
+ * PaymentRequirements exactly (resource metadata lives at the challenge's top level, not here).
+ */
 export interface PaymentRequirements {
   scheme: string;
   network: string;
-  maxAmountRequired: string;
-  resource: string;
-  description: string;
-  mimeType: string;
+  asset: string;
+  amount: string;
   payTo: string;
   maxTimeoutSeconds: number;
-  asset: string;
-  extra?: Record<string, unknown>;
+  extra: Record<string, unknown>;
 }
 
 export interface VerifyResult {

@@ -2,11 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { createHmac } from 'node:crypto';
 import { signOkxRequest, facilitatorConfigured } from '../src/payment/facilitator.js';
 import {
-  hasPayment,
+  getPaymentHeader,
   decodePaymentHeader,
   settlePaymentHeader,
   scoutPaymentRequirements,
   paymentRequiredBody,
+  encodePaymentRequired,
 } from '../src/payment/gate.js';
 
 describe('signOkxRequest', () => {
@@ -37,12 +38,17 @@ describe('signOkxRequest', () => {
   });
 });
 
-describe('hasPayment', () => {
-  it('true only for a non-empty string header', () => {
-    expect(hasPayment('x')).toBe(true);
-    expect(hasPayment('')).toBe(false);
-    expect(hasPayment(undefined)).toBe(false);
-    expect(hasPayment(['x'])).toBe(false); // array header is not a valid single payload
+describe('getPaymentHeader', () => {
+  it('prefers PAYMENT-SIGNATURE and falls back to X-PAYMENT', () => {
+    expect(getPaymentHeader({ 'payment-signature': 'sig' })).toBe('sig');
+    expect(getPaymentHeader({ 'x-payment': 'legacy' })).toBe('legacy');
+    expect(getPaymentHeader({ 'payment-signature': 'sig', 'x-payment': 'legacy' })).toBe('sig');
+  });
+
+  it('rejects empty, missing, and array headers', () => {
+    expect(getPaymentHeader({})).toBeUndefined();
+    expect(getPaymentHeader({ 'payment-signature': '' })).toBeUndefined();
+    expect(getPaymentHeader({ 'payment-signature': ['a', 'b'] })).toBeUndefined();
   });
 });
 
@@ -67,28 +73,62 @@ describe('settlePaymentHeader (no creds configured in test env)', () => {
 
   // Pre-settlement behaviour: pass through unverified so the live endpoint keeps working.
   it('passes through UNVERIFIED without calling the network', async () => {
-    const reqs = scoutPaymentRequirements('https://scout.example/mcp');
-    const outcome = await settlePaymentHeader('any-header', reqs);
+    const outcome = await settlePaymentHeader('any-header', scoutPaymentRequirements());
     expect(outcome.ok).toBe(true);
     expect(outcome.verified).toBe(false);
     expect(outcome.paymentResponse).toBeUndefined();
   });
 });
 
+// Pinned to @okxweb3/x402-core's wire format (x402 v2) — the shape OKX listing review
+// validates: {x402Version, resource, accepts:[{scheme, network, asset, amount, payTo,
+// maxTimeoutSeconds, extra}]}, base64-encoded into the PAYMENT-REQUIRED header.
 describe('scoutPaymentRequirements', () => {
-  it('advertises price in USDT base units and the configured payTo', () => {
-    const reqs = scoutPaymentRequirements('https://scout.example/mcp');
-    expect(reqs.maxAmountRequired).toBe('10000'); // 0.01 USDT * 10^6
-    expect(reqs.resource).toBe('https://scout.example/mcp');
-    expect(reqs.asset).toMatch(/^0x[a-fA-F0-9]{40}$/);
+  it('advertises price in base units of USD₮0 (OKX default X Layer stablecoin)', () => {
+    const reqs = scoutPaymentRequirements();
+    expect(reqs.amount).toBe('10000'); // 0.01 * 10^6
+    expect(reqs.asset).toBe('0x779ded0c9e1022225f8e0630b35a9b54be713736');
     expect(reqs.payTo).toMatch(/^0x[a-fA-F0-9]{40}$/);
+    expect(reqs.extra).toEqual({ name: 'USD₮0', version: '1' });
   });
 
-  // Pinned to the OKX facilitator's GET /supported (probed 2026-07-17): exact / eip155:196 / v2.
-  it('matches the facilitator-supported scheme, network, and x402 version', () => {
-    const reqs = scoutPaymentRequirements('https://scout.example/mcp');
+  it('matches the facilitator-supported scheme and network', () => {
+    const reqs = scoutPaymentRequirements();
     expect(reqs.scheme).toBe('exact');
     expect(reqs.network).toBe('eip155:196');
-    expect(paymentRequiredBody('https://scout.example/mcp').x402Version).toBe(2);
+    expect(reqs.maxTimeoutSeconds).toBe(300);
+  });
+
+  it('carries no legacy v1 field names', () => {
+    const reqs = scoutPaymentRequirements() as Record<string, unknown>;
+    expect(reqs).not.toHaveProperty('maxAmountRequired');
+    expect(reqs).not.toHaveProperty('resource');
+    expect(reqs).not.toHaveProperty('description');
+    expect(reqs).not.toHaveProperty('mimeType');
+  });
+});
+
+describe('paymentRequiredBody + PAYMENT-REQUIRED header', () => {
+  it('is a full x402 v2 challenge with top-level resource metadata', () => {
+    const body = paymentRequiredBody('https://scout.example/mcp');
+    expect(body.x402Version).toBe(2);
+    expect(body.resource.url).toBe('https://scout.example/mcp');
+    expect(body.resource.mimeType).toBe('application/json');
+    expect(body.accepts).toHaveLength(1);
+  });
+
+  it('includes error only when given', () => {
+    expect(paymentRequiredBody('https://x')).not.toHaveProperty('error');
+    expect(paymentRequiredBody('https://x', 'Payment required.')).toHaveProperty(
+      'error',
+      'Payment required.',
+    );
+  });
+
+  it('encodes to standard base64 that round-trips to the same challenge', () => {
+    const body = paymentRequiredBody('https://scout.example/mcp');
+    const header = encodePaymentRequired(body);
+    expect(header).toMatch(/^[A-Za-z0-9+/]*={0,2}$/); // standard base64, not base64url
+    expect(JSON.parse(Buffer.from(header, 'base64').toString('utf8'))).toEqual(body);
   });
 });

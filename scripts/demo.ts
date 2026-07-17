@@ -65,12 +65,12 @@ async function main(): Promise<void> {
     body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
   });
   const gate = (await res.json()) as {
-    accepts?: [{ maxAmountRequired: string; network: string; extra: { name: string } }];
+    accepts?: [{ amount: string; network: string; extra: { name: string } }];
   };
   const a = gate.accepts?.[0];
   console.log(`\n  ${YELLOW}HTTP ${res.status} Payment Required${RESET}`);
   if (a) {
-    const price = Number(a.maxAmountRequired) / 1e6;
+    const price = Number(a.amount) / 1e6;
     console.log(`  ${DIM}price: ${price} ${a.extra.name} per call · network: ${a.network}${RESET}`);
   }
   await sleep(2500);
