@@ -1,21 +1,19 @@
 # Scout — OKX.AI ASP Hackathon Submission Kit
 
-> **Deadline: Jul 17, 2026 · 23:59 UTC.** Listing must PASS OKX internal review AND be
-> LIVE to stay eligible — review takes up to 24h, so submit for listing today.
+> **Deadline: Jul 27, 2026 · 23:59 UTC** (extended from Jul 17). Listing must PASS OKX
+> internal review AND be LIVE to stay eligible — review takes up to 24h.
 
 ---
 
 ## 0. Critical path / checklist
 
-- [ ] Deploy Scout to Vercel → get public URL (e.g. `https://scout-xxxx.vercel.app`)
-- [ ] Set `SCOUT_PAYTO_ADDRESS` to REAL receiving wallet (not `0x0000…`)
-- [ ] Verify live `/mcp` returns 402 gate + DANGER verdict on the drainer fixture
-- [ ] Register A2MCP ASP via Onchain OS agent (steps 2–5 of the tutorial) — **starts review; OKX reviews in parallel during the submission window**
+- [x] Deploy Scout to Vercel → `https://scout-nu-wheat.vercel.app`
+- [x] Set `SCOUT_PAYTO_ADDRESS` to REAL receiving wallet
+- [x] Verify live `/mcp` returns 402 gate + DANGER verdict on the drainer fixture
+- [x] Register A2MCP ASP — **Agent ID 6325**; rejected twice (avatar; x402 challenge), both fixed 2026-07-17: recon-owl avatar live, 402 now serves the `PAYMENT-REQUIRED` header validated against OKX's own SDK schema
+- [ ] Resubmit for review (`activate #6325`) — only with explicit user go-ahead
 - [ ] Post on X with `#OKXAI` — intro + use case + ≤90s demo/walkthrough **embedded in the post** (no separate video upload) → copy the post link
-- [ ] Submit Google form (ASP details + X post link) before Jul 17 23:59 UTC
-
-Submission window: Jul 3 – **Jul 17 23:59 UTC**. Get listed early — OKX reviews and
-approves in parallel during the window, so being in the queue sooner = safer.
+- [ ] Submit Google form (ASP details + X post link) before Jul 27 23:59 UTC
 
 ---
 
@@ -116,14 +114,14 @@ npx tsx scripts/e2e.ts
 
 ---
 
-## 4. Google form answers — the ACTUAL 7 fields (submit before Jul 17 23:59 UTC)
+## 4. Google form answers — the ACTUAL 7 fields (submit before Jul 27 23:59 UTC)
 
 Form: OKX.AI Genesis Hackathon. Email (`zaxemoboy006@gmail.com`) is pre-filled.
 All 7 fields are required. Note: the form has NO endpoint/pricing/repo field — those
 live only in the OKX listing itself.
 
 1. **ASP Name*** — `Scout`
-2. **Agent ID*** — `<the ID OKX gives you after the ASP is listed>`
+2. **Agent ID*** — `6325`
 3. **ASP Description*** —
    > Scout takes the exact calldata you're about to sign, executes it against live chain
    > state, and tells you in plain English what it actually does — balance changes, token
