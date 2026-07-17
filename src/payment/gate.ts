@@ -30,16 +30,14 @@ function toBaseUnits(amount: number, decimals: number): string {
  * The single source of truth for what Scout charges. Both the advertised 402 body and the
  * payload handed to the facilitator derive from this — they must never drift apart.
  *
- * TODO(live reconciliation, needs OKX API creds): OKX's facilitator documents scheme
- * "aggr_deferred", network "eip155:196", x402Version 2, and settlement assets USDG / USD₮0 /
- * USDC (addresses differ from the USDT below). The values here match our original reference
- * listing (exact / xlayer). Confirm the exact shape OKX marketplace clients sign against with
- * a real payment, then align both the advertised body and this object.
+ * Shape confirmed against the facilitator's GET /supported (probed 2026-07-17): scheme "exact"
+ * on network "eip155:196" at x402Version 2. /supported lists no asset restriction; the USDT
+ * address below is still unverified against a real marketplace payment.
  */
 export function scoutPaymentRequirements(resource: string): PaymentRequirements {
   return {
     scheme: 'exact',
-    network: 'xlayer',
+    network: 'eip155:196',
     maxAmountRequired: toBaseUnits(env.SCOUT_PRICE_USDT, USDT_DECIMALS),
     resource,
     description:
@@ -54,7 +52,7 @@ export function scoutPaymentRequirements(resource: string): PaymentRequirements 
 
 export function paymentRequiredBody(resource: string) {
   return {
-    x402Version: 1,
+    x402Version: 2,
     error: 'X-PAYMENT header is required',
     accepts: [scoutPaymentRequirements(resource)],
   };

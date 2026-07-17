@@ -6,6 +6,7 @@ import {
   decodePaymentHeader,
   settlePaymentHeader,
   scoutPaymentRequirements,
+  paymentRequiredBody,
 } from '../src/payment/gate.js';
 
 describe('signOkxRequest', () => {
@@ -81,5 +82,13 @@ describe('scoutPaymentRequirements', () => {
     expect(reqs.resource).toBe('https://scout.example/mcp');
     expect(reqs.asset).toMatch(/^0x[a-fA-F0-9]{40}$/);
     expect(reqs.payTo).toMatch(/^0x[a-fA-F0-9]{40}$/);
+  });
+
+  // Pinned to the OKX facilitator's GET /supported (probed 2026-07-17): exact / eip155:196 / v2.
+  it('matches the facilitator-supported scheme, network, and x402 version', () => {
+    const reqs = scoutPaymentRequirements('https://scout.example/mcp');
+    expect(reqs.scheme).toBe('exact');
+    expect(reqs.network).toBe('eip155:196');
+    expect(paymentRequiredBody('https://scout.example/mcp').x402Version).toBe(2);
   });
 });
