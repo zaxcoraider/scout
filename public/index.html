@@ -389,12 +389,18 @@
 
   const sleep = ms => new Promise(r => setTimeout(r, reduced ? 0 : ms));
 
-  async function typewriter(el, text) {
-    if (reduced) { el.textContent = text; return; }
-    for (let i = 0; i < text.length; i += 3) {
-      el.textContent = text.slice(0, i + 3);
-      await sleep(8);
-    }
+  // Time-based so throttled timers can't stretch it: always completes in ~1.4s.
+  function typewriter(el, text) {
+    if (reduced) { el.textContent = text; return Promise.resolve(); }
+    const duration = Math.min(1400, Math.max(500, text.length * 4));
+    return new Promise(resolve => {
+      const t0 = performance.now();
+      (function frame(now) {
+        const k = Math.min(1, (now - t0) / duration);
+        el.textContent = text.slice(0, Math.ceil(text.length * k));
+        if (k < 1) requestAnimationFrame(frame); else resolve();
+      })(t0);
+    });
   }
 
   async function run(key, btn) {
@@ -425,7 +431,7 @@
       scan.className = 'scanning';
       scan.innerHTML = '<span>simulating against live Ethereum state…</span><span class="scanline"></span>';
       body.appendChild(scan);
-      await sleep(1400);
+      await sleep(1100);
       scan.remove();
 
       const v = document.createElement('div');
