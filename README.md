@@ -13,6 +13,7 @@
 ![MCP](https://img.shields.io/badge/protocol-MCP_over_HTTP-8aa096?style=flat-square)
 ![tests](https://img.shields.io/badge/tests-38_passing-2bd576?style=flat-square)
 ![stateless](https://img.shields.io/badge/state-none_·_no_keys_·_no_DB-ff4d5d?style=flat-square)
+![license](https://img.shields.io/badge/license-MIT-8aa096?style=flat-square)
 
 **Every wallet check runs *after* you sign. Scout runs *before*.**
 
