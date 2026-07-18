@@ -95,22 +95,25 @@
 
 ## 3. Demo script (≤90 seconds, shot-by-shot)
 
-Target: show the DANGER path — a wallet-drainer approval — because it's the money shot.
+Target: the DANGER path is the money shot, but show all three verdicts — no other ASP can.
 
 | Time | Shot | What to show / say |
 |------|------|--------------------|
 | 0:00–0:08 | Title card | "Scout — simulate any transaction before you sign it." |
-| 0:08–0:20 | The problem | Text overlay: "Wallets get drained the moment you sign. Nothing checks the transaction itself — until now." |
-| 0:20–0:35 | The call | Show an agent / terminal calling `scout_check_transaction` with a real drainer approval: an unlimited `approve()` to a plain wallet (EOA). Keep the JSON visible. |
-| 0:35–0:55 | The verdict | Cut to the response: **DANGER — "STOP — this hands a stranger the keys to ALL of your tokens."** Highlight findings `UNLIMITED_APPROVAL`, `APPROVAL_TO_EOA`, and `mode: simulated`. |
-| 0:55–1:12 | Contrast | Run a benign swap → **SAFE**. Show Scout doesn't cry wolf: normal activity passes clean. |
-| 1:12–1:25 | Why it's different | Overlay: "Only ASP that simulates PENDING calldata. Never signs. No keys. Stateless. Calldata never leaves." |
-| 1:25–1:30 | Close | "Scout. Live on OKX.AI. #OKXAI" + the marketplace link. |
+| 0:08–0:18 | The problem | Text overlay: "Wallets get drained the moment you sign. Nothing checks the transaction itself — until now." |
+| 0:18–0:26 | It's live & paid | Act 1 of the script: the real x402 paywall on the live endpoint — HTTP 402, 0.01 USD₮0 per call on X Layer. |
+| 0:26–0:42 | The drainer | Act 2: `scout_check_transaction` on an unlimited `approve()` to a plain wallet (EOA). Keep the JSON visible, then **DANGER — "STOP — this hands a stranger the keys to ALL of your tokens."** Highlight `UNLIMITED_APPROVAL`, `APPROVAL_TO_EOA`, `mode: simulated`. |
+| 0:42–0:56 | The hidden transfer | Act 3: a "claim"-shaped calldata that quietly `transfer()`s 25,000 USDC out → **CAUTION — "Money leaves your wallet and nothing comes back."** |
+| 0:56–1:08 | Contrast | Act 4: a plain ETH transfer → **SAFE**. Scout doesn't cry wolf: normal activity passes clean. |
+| 1:08–1:20 | Why it's different | Overlay: "Only ASP that simulates PENDING calldata. Never signs. No keys. Stateless. Calldata never leaves." |
+| 1:20–1:28 | Close | "Scout. Live on OKX.AI. Agent #6325. #OKXAI" + the marketplace link. |
 
-**Demo command** (reuse the verified e2e — produces the exact DANGER output on camera):
+**Demo command** (camera-ready, paced for recording — plays all four acts, ~60s):
 ```bash
-npx tsx scripts/e2e.ts
+npx tsx --env-file=.env scripts/demo.ts
 ```
+Record the terminal full-screen, dark theme, font 18pt+. Title/problem/why/close cards are
+overlays added in the editor.
 
 ---
 

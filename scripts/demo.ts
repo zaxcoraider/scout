@@ -4,7 +4,8 @@
  *
  *   1. The live endpoint's x402 paywall — proves this is a real paid API, live right now.
  *   2. A wallet-drainer approval (unlimited approve() to an EOA) → DANGER, simulated on mainnet.
- *   3. A plain ETH transfer → SAFE — Scout doesn't cry wolf.
+ *   3. A claim-shaped calldata that quietly transfers 25,000 USDC out → CAUTION.
+ *   4. A plain ETH transfer → SAFE — Scout doesn't cry wolf. Full verdict range on camera.
  *
  * Run:  npx tsx --env-file=.env scripts/demo.ts
  * Record the terminal full-screen, font 18pt+. Title/close cards are overlays in the editor
@@ -87,8 +88,22 @@ async function main(): Promise<void> {
   console.log(`\n  ${DIM}analysis mode: ${danger.analysis.mode}${RESET}`);
   await sleep(3500);
 
-  // ── Act 3: no false alarms ───────────────────────────────────────────────
-  banner("3 · And a normal transfer? Scout doesn't cry wolf.");
+  // ── Act 3: the hidden transfer ───────────────────────────────────────────
+  banner('3 · A "claim rewards" button. The calldata says otherwise.');
+  const hiddenInput = {
+    chainId: 1,
+    from: WHALE,
+    to: USDC,
+    data: `0xa9059cbb${STRANGER.slice(2).padStart(64, '0')}${(25_000_000_000n).toString(16).padStart(64, '0')}` as `0x${string}`,
+  };
+  await typewriter(JSON.stringify(hiddenInput, null, 2), 4);
+  const caution = await checkTransaction(hiddenInput);
+  verdictBlock(caution.verdict, caution.headline);
+  for (const f of caution.findings) console.log(`  ${YELLOW}!${RESET} ${f.id} — ${f.detail}`);
+  await sleep(3000);
+
+  // ── Act 4: no false alarms ───────────────────────────────────────────────
+  banner("4 · And a normal transfer? Scout doesn't cry wolf.");
   const safeInput = { chainId: 1, from: WHALE, to: STRANGER, value: '1000000000000000' };
   await typewriter(JSON.stringify(safeInput, null, 2), 4);
   const safe = await checkTransaction(safeInput);
