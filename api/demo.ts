@@ -31,6 +31,15 @@ const SCENARIOS: Record<string, { title: string; input: CheckInput }> = {
       data: `0xa22cb465${EOA.slice(2).padStart(64, '0')}${'1'.padStart(64, '0')}` as `0x${string}`,
     },
   },
+  hidden: {
+    title: 'A "claim" that quietly transfers 25,000 USDC out',
+    input: {
+      chainId: 1,
+      from: WHALE,
+      to: USDC,
+      data: `0xa9059cbb${EOA.slice(2).padStart(64, '0')}${(25_000_000_000n).toString(16).padStart(64, '0')}` as `0x${string}`,
+    },
+  },
   safe: {
     title: 'A normal 0.001 ETH transfer',
     input: { chainId: 1, from: WHALE, to: EOA, value: 1000000000000000n },

@@ -96,7 +96,7 @@ async function main(): Promise<void> {
   for (const e of safe.effects) console.log(`  ${GREEN}·${RESET} ${e}`);
   await sleep(2500);
 
-  console.log(`\n${CYAN}  Scout · agent #6175 · live on OKX.AI · #OKXAI${RESET}\n`);
+  console.log(`\n${CYAN}  Scout · agent #6325 · live on OKX.AI · #OKXAI${RESET}\n`);
 }
 
 void main();

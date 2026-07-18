@@ -9,8 +9,15 @@
 <link rel="apple-touch-icon" href="/icon.png">
 <meta property="og:title" content="Scout — simulate any transaction before you sign">
 <meta property="og:description" content="The safety check that runs BEFORE you sign. Live pay-per-call agent on OKX.AI.">
-<meta property="og:image" content="https://scout-nu-wheat.vercel.app/icon.png">
-<meta name="twitter:card" content="summary">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://scout-nu-wheat.vercel.app/">
+<meta property="og:image" content="https://scout-nu-wheat.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Scout — simulate any transaction before you sign">
+<meta name="twitter:description" content="The safety check that runs BEFORE you sign. Live pay-per-call agent on OKX.AI.">
+<meta name="twitter:image" content="https://scout-nu-wheat.vercel.app/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -144,8 +151,9 @@
   .reveal.in { opacity: 1; transform: none; }
 
   /* ── demo ────────────────────────────────────────────────── */
-  .scenarios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 30px; }
-  @media (max-width: 720px) { .scenarios { grid-template-columns: 1fr; } }
+  .scenarios { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 30px; }
+  @media (max-width: 900px) { .scenarios { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .scenarios { grid-template-columns: 1fr; } }
   .scenario {
     position: relative; overflow: hidden;
     background: var(--surface); padding: 20px; cursor: pointer; text-align: left;
@@ -162,6 +170,7 @@
   .scenario.active { background: var(--surface-2); }
   .scenario .k { font: 600 11px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
   .scenario.danger .k { color: var(--red); }
+  .scenario.caution .k { color: var(--amber); }
   .scenario.safe .k { color: var(--green); }
   .scenario h3 { font-size: 15.5px; font-weight: 600; margin: 10px 0 6px; }
   .scenario p { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
@@ -203,6 +212,7 @@
   .finding:nth-of-type(2) { animation-delay: .14s; } .finding:nth-of-type(3) { animation-delay: .28s; } .finding:nth-of-type(4) { animation-delay: .42s; }
   @keyframes frise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; } }
   .finding .x { color: var(--red); font-weight: 700; font-family: var(--mono); }
+  .verdict.CAUTION .finding .x { color: var(--amber); }
   .finding.ok .x { color: var(--green); }
   .modebadge {
     display: inline-block; margin-top: 16px; font: 400 11px var(--mono); color: var(--green);
@@ -313,6 +323,11 @@
         <span class="k">Threat</span>
         <h3>The NFT trap</h3>
         <p>A fake mint site requests one approval — over your entire NFT collection, forever.</p>
+      </button>
+      <button class="scenario caution" data-scenario="hidden">
+        <span class="k">Deception</span>
+        <h3>The hidden transfer</h3>
+        <p>A "claim rewards" button — but the calldata quietly sends 25,000 USDC out of your wallet.</p>
       </button>
       <button class="scenario safe" data-scenario="safe">
         <span class="k">Benign</span>
