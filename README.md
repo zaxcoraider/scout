@@ -115,7 +115,7 @@ payment gets a clean 402 with a fresh challenge, never a free ride.
 
 ## Example — a real captured response
 
-A "claim"-shaped calldata that quietly `transfer()`s 25,000 USDC out of the wallet:
+A "claim"-shaped calldata that quietly moves 25,000 USDC out of the wallet via `transfer()`:
 
 ```jsonc
 {
