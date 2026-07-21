@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { checkTransaction } from './check.js';
 import { SUPPORTED_CHAIN_IDS, CHAINS } from './chains/config.js';
+import { DISCLAIMER } from './types.js';
 
 const supportedList = SUPPORTED_CHAIN_IDS.map((id) => `${id} (${CHAINS[id]!.name})`).join(', ');
 
@@ -36,6 +37,35 @@ export const CheckTransactionInput = z
       .describe('The calldata about to be signed. Example: 0x095ea7b3…'),
   })
   .strict();
+
+/**
+ * The deliverable for a PAID GET. Buyer tooling (task-402-pay) may replay a payment with
+ * the same GET it probed with; a paid request must always receive a deliverable, so GET
+ * gets the service descriptor: what the tool does and exactly how to invoke it over MCP.
+ */
+export function serviceDescriptor(resource: string) {
+  return {
+    service: 'Scout — Pre-Sign Transaction Check',
+    version: '0.1.0',
+    tool: 'scout_check_transaction',
+    description:
+      'Simulates the exact pending transaction against live chain state and returns a plain-English SAFE / CAUTION / DANGER verdict.',
+    invoke: {
+      transport: 'MCP Streamable HTTP',
+      method: 'POST',
+      url: resource,
+      note: 'POST an MCP tools/call for scout_check_transaction with your PAYMENT-SIGNATURE header.',
+      input: {
+        chainId: `one of: ${SUPPORTED_CHAIN_IDS.join(', ')}`,
+        from: '0x… wallet that would sign',
+        to: '0x… contract or wallet being called',
+        value: 'optional wei as decimal string',
+        data: 'optional 0x calldata about to be signed',
+      },
+    },
+    disclaimer: DISCLAIMER,
+  };
+}
 
 /** Fresh server per request — stateless, so it scales horizontally / on serverless. */
 export function createMcpServer(): McpServer {

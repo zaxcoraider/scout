@@ -85,14 +85,29 @@ describe('api/mcp handler — unpaid requests get the challenge on every method'
   });
 });
 
-describe('api/mcp handler — paid non-POST is rejected before settlement', () => {
-  // A paid GET has nothing to serve; it must 405 WITHOUT the challenge (payment was
-  // presented) and without settling. In test env the facilitator is unconfigured, so
-  // reaching settlement would pass the gate — a 405 here proves the method check runs
-  // before settlePaymentHeader.
-  it('GET with a payment header -> 405, no PAYMENT-REQUIRED, no PAYMENT-RESPONSE', async () => {
+describe('api/mcp handler — paid GET receives the service descriptor deliverable', () => {
+  // Buyer tooling (task-402-pay) replays the paid call with the same GET it probed
+  // with; a paid request must always produce a deliverable. Found by a real paid
+  // replay 2026-07-21: the pre-fix 405 failed the flow.
+  it('GET with a payment header -> 200 deliverable with disclaimer, no challenge', async () => {
     const { res, out } = mockRes();
     await handler(mockReq('GET', { 'payment-signature': 'sig' }), res);
+
+    expect(out.statusCode).toBe(200);
+    expect(out.headers['payment-required']).toBeUndefined();
+    const deliverable = JSON.parse(out.body);
+    expect(deliverable.tool).toBe('scout_check_transaction');
+    expect(deliverable.invoke.method).toBe('POST');
+    expect(deliverable.disclaimer).toBeTruthy();
+  });
+});
+
+describe('api/mcp handler — paid methods outside GET/POST are rejected before settlement', () => {
+  // In test env the facilitator is unconfigured, so reaching settlement would pass the
+  // gate — a 405 here proves the method check runs before settlePaymentHeader.
+  it('PUT with a payment header -> 405, no PAYMENT-REQUIRED, no PAYMENT-RESPONSE', async () => {
+    const { res, out } = mockRes();
+    await handler(mockReq('PUT', { 'payment-signature': 'sig' }), res);
 
     expect(out.statusCode).toBe(405);
     expect(out.headers['payment-required']).toBeUndefined();

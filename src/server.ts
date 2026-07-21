@@ -1,9 +1,9 @@
 import Fastify from 'fastify';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { env } from './env.js';
-import { createMcpServer } from './mcp.js';
+import { createMcpServer, serviceDescriptor } from './mcp.js';
 import { SUPPORTED_CHAIN_IDS } from './chains/config.js';
-import { getPaymentHeader, paymentGate } from './payment/gate.js';
+import { paymentGate } from './payment/gate.js';
 import { facilitatorConfigured } from './payment/facilitator.js';
 import { DISCLAIMER } from './types.js';
 
@@ -20,15 +20,13 @@ app.get('/healthz', async () => ({
   disclaimer: DISCLAIMER,
 }));
 
-// x402: an unpaid GET must return the same 402 challenge as POST — OKX's buyer tooling
-// probes with GET before paying (listing review, 2026-07-21). A paid GET is 405, decided
-// before the gate so no settlement runs for a request we cannot serve.
+// x402: OKX buyer tooling probes with GET (unpaid → the 402 challenge) and may replay
+// the paid call with GET too (paid → the service descriptor deliverable). Confirmed
+// against listing review + a real task-402-pay run, 2026-07-21.
 app.get('/mcp', async (req, reply) => {
-  if (!getPaymentHeader(req.headers)) {
-    await paymentGate(req, reply);
-    return;
-  }
-  return reply.code(405).send({ error: 'Paid calls use POST.' });
+  const paid = await paymentGate(req, reply);
+  if (!paid) return;
+  return reply.send(serviceDescriptor(`${req.protocol}://${req.hostname}${req.url}`));
 });
 
 app.post('/mcp', async (req, reply) => {

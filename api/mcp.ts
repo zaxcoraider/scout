@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { createMcpServer } from '../src/mcp.js';
+import { createMcpServer, serviceDescriptor } from '../src/mcp.js';
 import {
   encodePaymentRequired,
   getPaymentHeader,
@@ -12,12 +12,12 @@ import {
 /**
  * Production MCP endpoint (Vercel).
  *
- * x402 contract (confirmed against OKX listing review 2026-07-21 — their buyer tooling
- * probes the endpoint with GET before paying, so the challenge must be discoverable on
- * EVERY method, not just POST):
+ * x402 contract (confirmed against OKX listing review + a real task-402-pay run,
+ * 2026-07-21 — buyer tooling probes with GET AND replays the paid call with GET):
  *   any method without payment -> 402 + PAYMENT-REQUIRED challenge
- *   POST with payment          -> the verdict
- *   non-POST with payment      -> 405 (rejected BEFORE settlement — never take money
+ *   POST with payment          -> the verdict (MCP)
+ *   GET with payment           -> the service descriptor deliverable
+ *   other method with payment  -> 405 (rejected BEFORE settlement — never take money
  *                                 for a request we cannot serve)
  *   OPTIONS                    -> 204 CORS preflight (never gated)
  */
@@ -51,10 +51,10 @@ export default async function handler(
     return;
   }
 
-  if (req.method !== 'POST') {
+  if (req.method !== 'POST' && req.method !== 'GET') {
     res.statusCode = 405;
     res.setHeader('content-type', 'application/json');
-    res.end(JSON.stringify({ error: 'Paid calls use POST.' }));
+    res.end(JSON.stringify({ error: 'Paid calls use GET or POST.' }));
     return;
   }
 
@@ -69,6 +69,13 @@ export default async function handler(
     return;
   }
   if (outcome.paymentResponse) res.setHeader('PAYMENT-RESPONSE', outcome.paymentResponse);
+
+  if (req.method === 'GET') {
+    res.statusCode = 200;
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify(serviceDescriptor(resource)));
+    return;
+  }
 
   // Stateless: a fresh server + transport per invocation. Exactly what serverless wants.
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
