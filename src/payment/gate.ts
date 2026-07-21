@@ -10,9 +10,11 @@ import {
 /**
  * x402 payment gate.
  *
- * Shape confirmed against OKX's own reference listing (Onchain Data Explorer):
- * "All x402 endpoints use HTTP POST; unpaid POST requests receive a 402 payment-required
- * response (GET requests return 405)."
+ * Unpaid requests of ANY method receive the 402 challenge: OKX's buyer tooling
+ * (payment quote / task-402-pay) probes the endpoint with GET before paying, and the
+ * listing review fails if the probe cannot obtain the PAYMENT-REQUIRED header
+ * (confirmed against review feedback, 2026-07-21). Only the paid call itself is
+ * POST-only.
  *
  * Security contract: runs BEFORE validation and BEFORE any simulation compute — the payment
  * gate IS the first line of the rate limiter. Payment identifiers are never logged.

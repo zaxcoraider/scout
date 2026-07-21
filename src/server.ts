@@ -3,7 +3,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { env } from './env.js';
 import { createMcpServer } from './mcp.js';
 import { SUPPORTED_CHAIN_IDS } from './chains/config.js';
-import { paymentGate } from './payment/gate.js';
+import { getPaymentHeader, paymentGate } from './payment/gate.js';
 import { facilitatorConfigured } from './payment/facilitator.js';
 import { DISCLAIMER } from './types.js';
 
@@ -20,8 +20,16 @@ app.get('/healthz', async () => ({
   disclaimer: DISCLAIMER,
 }));
 
-// x402: GET on the paid endpoint is 405, per OKX's reference listing.
-app.get('/mcp', async (_req, reply) => reply.code(405).send({ error: 'Use POST.' }));
+// x402: an unpaid GET must return the same 402 challenge as POST — OKX's buyer tooling
+// probes with GET before paying (listing review, 2026-07-21). A paid GET is 405, decided
+// before the gate so no settlement runs for a request we cannot serve.
+app.get('/mcp', async (req, reply) => {
+  if (!getPaymentHeader(req.headers)) {
+    await paymentGate(req, reply);
+    return;
+  }
+  return reply.code(405).send({ error: 'Paid calls use POST.' });
+});
 
 app.post('/mcp', async (req, reply) => {
   // Payment gate runs FIRST — before validation, before any simulation compute.
